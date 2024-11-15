@@ -8,8 +8,9 @@ class CoreMLLlamaInference:
         """Initialize the CoreML Llama inference engine"""
         print(f"Loading model from {model_path}")
         # self.model = ct.models.MLModel(model_path, compute_units=ct.ComputeUnit.CPU_AND_NE)
-        self.model = ct.models.MLModel(model_path)
-        print(f"Model loaded, getting tokenizer")
+        self.model = ct.models.MLModel(model_path, compute_units=ct.ComputeUnit.CPU_AND_GPU)
+        print(f"Model loaded using compute units: {self.model.compute_unit}")
+        print(f"Getting tokenizer")
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         print(f"Tokenizer loaded")
 

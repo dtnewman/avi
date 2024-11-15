@@ -26,18 +26,15 @@ class LlamaCoreMLConverter:
             example_inputs=example_inputs
         )
 
-        # Convert to Core ML
-        query_size = ct.RangeDim(lower_bound=1, upper_bound=self.context_size, default=1)
-        final_step = ct.RangeDim(lower_bound=1, upper_bound=self.context_size, default=1)
-        
+        # Define input shapes with RangeDim for dynamic dimensions
         inputs = [
             ct.TensorType(
-                shape=(self.batch_size, query_size),
+                shape=(self.batch_size, ct.RangeDim(1, 2048, default=1)),
                 dtype=np.int32,
                 name="inputIds"
             ),
             ct.TensorType(
-                shape=(self.batch_size, 1, query_size, final_step),
+                shape=(self.batch_size, 1, ct.RangeDim(1, 2048, default=1), ct.RangeDim(1, 2048, default=1)),
                 dtype=np.float16,
                 name="causalMask"
             ),
@@ -66,6 +63,7 @@ class LlamaCoreMLConverter:
             outputs=[ct.TensorType(dtype=np.float16, name="logits")],
             states=states,
             minimum_deployment_target=ct.target.macOS15,
+            compute_units=ct.ComputeUnit.CPU_AND_NE,  # Enable Neural Engine
             skip_model_load=True,
         )
 
@@ -75,10 +73,11 @@ class LlamaCoreMLConverter:
         return mlmodel
 
     def _quantize_model(self, mlmodel: ct.models.MLModel) -> ct.models.MLModel:
+        # Use int4 quantization as recommended in the Apple ML blog
         op_config = ct.optimize.coreml.OpLinearQuantizerConfig(
             mode="linear_symmetric",
-            dtype="int8",
-            granularity="per_channel",
+            dtype="int4",  # Changed from int8 to int4
+            granularity="per_block",  # Changed from per_channel to per_block
             block_size=32,
         )
         config = ct.optimize.coreml.OptimizationConfig(global_config=op_config)
