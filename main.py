@@ -2,15 +2,34 @@ import coremltools as ct
 from transformers import AutoTokenizer
 import numpy as np
 import os
+import time
+
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 class CoreMLLlamaInference:
     def __init__(self, model_path, model_id):
         """Initialize the CoreML Llama inference engine"""
+        print(f"Loading model from {model_path}")
+        # self.model = ct.models.MLModel(model_path, compute_units=ct.ComputeUnit.CPU_AND_NE)
         self.model = ct.models.MLModel(model_path)
+        print(f"Model loaded, getting tokenizer")
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        print(f"Tokenizer loaded")
+
+        # Ensure eos_token and eos_token_id are set
+        if self.tokenizer.eos_token is None:
+            self.tokenizer.eos_token = ''
+            self.tokenizer.eos_token_id = 2
+        
+        # Ensure pad_token and pad_token_id are set
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        
+        # Print eos_token_id and pad_token_id for debugging
+        print("EOS token ID:", self.tokenizer.eos_token_id)
+        print("Pad token ID:", self.tokenizer.pad_token_id)
         
         # Initialize state
         self.state = self.model.make_state()
@@ -49,7 +68,7 @@ class CoreMLLlamaInference:
             if callback and new_text != current_text:
                 callback(new_text[len(current_text):])
                 current_text = new_text
-
+    
         return current_text
 
     def _sample_token(self, logits, temperature):
@@ -60,12 +79,14 @@ class CoreMLLlamaInference:
         return int(np.random.choice(len(probs), p=probs))
 
 def main():
+
     model_id = "meta-llama/Llama-3.2-1B-instruct"
-    model_path = './models/llama-3.2-1b-instruct.mlpackage'
+    model_path = './models/llama-3.2-1b-instruct-quantized.mlpackage'
     
     llama = CoreMLLlamaInference(model_path, model_id)
     
     prompt = "What is the capital of Japan?"
+    print(f"Prompt: {prompt}")
     
     # Define streaming callback
     def stream_callback(new_token):
@@ -75,4 +96,7 @@ def main():
     print("\n")  # Add newline at the end
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    end_time = time.time()
+    print(f"\nGeneration time: {end_time - start_time:.2f} seconds")

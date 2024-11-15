@@ -12,11 +12,13 @@ class KvCacheStateLlamaForCausalLM(torch.nn.Module):
         model_path: str,
         *,
         batch_size: int = 1,
-        context_size: int = 4096
+        context_size: int = 4096,
+        eos_token_id: int = 2
     ) -> None:
         super().__init__()
         self.model = LlamaForCausalLM.from_pretrained(model_path)
         config: LlamaConfig = self.model.config
+        config.eos_token_id = eos_token_id
         self.kv_cache_shape: tuple[int, ...] = (
             config.num_hidden_layers,
             batch_size,

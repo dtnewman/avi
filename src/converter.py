@@ -77,8 +77,8 @@ class LlamaCoreMLConverter:
     def _quantize_model(self, mlmodel: ct.models.MLModel) -> ct.models.MLModel:
         op_config = ct.optimize.coreml.OpLinearQuantizerConfig(
             mode="linear_symmetric",
-            dtype="int4",
-            granularity="per_block",
+            dtype="int8",
+            granularity="per_channel",
             block_size=32,
         )
         config = ct.optimize.coreml.OptimizationConfig(global_config=op_config)
