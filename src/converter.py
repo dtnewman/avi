@@ -1,5 +1,9 @@
 # credit to https://github.com/andmev/llama-to-coreml/blob/master/src/converter.py
 
+# todo: look at https://forums.developer.apple.com/forums/thread/729942
+# and https://machinelearning.apple.com/research/core-ml-on-device-llama to see
+# if i can get this working on neural engine
+
 import coremltools as ct
 import torch
 import numpy as np
