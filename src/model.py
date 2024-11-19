@@ -38,7 +38,10 @@ class KvCacheStateLlamaForCausalLM(torch.nn.Module):
         causal_mask: torch.Tensor,
     ) -> torch.Tensor:
         # Compute past seen tokens used for updating key/value cache slices
-        self.kv_cache.past_seen_tokens = causal_mask.shape[-1] - input_ids.shape[-1]
+        if causal_mask is None:
+            self.kv_cache.past_seen_tokens = input_ids.shape[-1]
+        else:
+            self.kv_cache.past_seen_tokens = causal_mask.shape[-1] - input_ids.shape[-1]
         return self.model(
             input_ids,
             attention_mask=causal_mask,
