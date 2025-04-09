@@ -1,7 +1,8 @@
-import openai
 import os
-from pydantic import BaseModel
 from typing import Optional
+
+import openai
+from pydantic import BaseModel
 
 
 class Command(BaseModel):
@@ -32,6 +33,14 @@ commands in the commands field (remember, up to 3 options, and they all must be 
 that can be run in a bash terminal without changing anything). Each command should have
 a short explanation of what it does.
 
+Here is some context about the user's environment:
+
+============== 
+
+{context}
+
+============== 
+
 Here is the users prompt:
 
 ============== 
@@ -44,11 +53,11 @@ def get_client():
     return openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def get_options(prompt) -> OptionsResponse:
+def get_options(prompt: str, context: str) -> OptionsResponse:
     client = get_client()
     response = client.beta.chat.completions.parse(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": PROMPT.format(prompt=prompt)}],
+        messages=[{"role": "user", "content": PROMPT.format(prompt=prompt, context=context)}],
         response_format=OptionsResponse,
     )
     return response.choices[0].message.parsed

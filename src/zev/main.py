@@ -1,14 +1,15 @@
-from dataclasses import dataclass
-import dotenv
 import os
-import questionary
-import pyperclip
-import platformdirs
-from rich import print as rprint
 import sys
+from dataclasses import dataclass
+
+import dotenv
+import platformdirs
+import pyperclip
+import questionary
+from rich import print as rprint
 
 from zev.llm import get_options
-from zev.utils import get_input_string
+from zev.utils import get_env_context, get_input_string
 
 
 @dataclass
@@ -43,7 +44,8 @@ def setup():
 
 
 def show_options(words: str):
-    response = get_options(words)
+    context = get_env_context()
+    response = get_options(prompt=words, context=context)
     if not response.is_valid:
         print(response.explanation_if_not_valid)
         return

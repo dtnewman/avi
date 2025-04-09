@@ -1,3 +1,7 @@
+import os
+import platform
+
+
 def get_input_string(
     field_name: str,
     prompt: str,
@@ -18,3 +22,9 @@ def get_input_string(
         return get_input_string(field_name, prompt, current_value, default, required)
 
     return value or current_value or default
+
+
+def get_env_context() -> str:
+    os_name = platform.platform(aliased=True)
+    shell = os.environ.get("SHELL")
+    return f"OS: {os_name}\nSHELL: {shell}" if shell else f"OS: {os_name}"
